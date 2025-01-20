@@ -1,0 +1,89 @@
+L1URL = "http://localhost:8545"
+L2URL = "http://localhost:8123"
+AggLayerURL = "https://agglayer-dev.polygon.technology"
+
+L2Coinbase = "0xec666A85fda403c022e8261B6CeE9BB26947F286"
+SequencerPrivateKeyPath = "/app/sequencer.keystore"
+SequencerPrivateKeyPassword = "test"
+WitnessURL = "http://localhost:8123"
+
+rollupCreationBlockNumber = "5157574"
+rollupManagerCreationBlockNumber = "5157574"
+genesisBlockNumber = "5157574"
+[L1Config]
+        chainId = "11155111"
+        polygonZkEVMGlobalExitRootAddress = "0x2968d6d736178f8fe7393cc33c87f29d9c287e78"
+        polygonRollupManagerAddress = "0xe2ef6215adc132df6913c8dd16487abf118d1764"
+        polTokenAddress = "0x57e7e56d9dce34c5e899141834bf512061dd9cd0"
+        polygonZkEVMAddress = "0x6fa5b77d999d73275fd4f9a356a95d63b6925601"
+
+[L2Config]
+        GlobalExitRootAddr = "0x2968d6d736178f8fe7393cc33c87f29d9c287e78"
+
+[Etherman]
+	URL="http://localhost:8545"
+	ForkIDChunkSize=1000000000
+	[Etherman.EthermanConfig]
+		URL="http://localhost:8545"
+		MultiGasProvider=false
+		L1ChainID=11155111
+		HTTPHeaders=[]
+		[Etherman.EthermanConfig.Etherscan]
+			ApiKey=""
+			Url="https://api.etherscan.io/api?module=gastracker&action=gasoracle&apikey="
+
+[Common]
+NetworkID = 22
+IsValidiumMode = false
+ContractVersions = "banana"
+
+[Log]
+Environment = "development" # "production" or "development"
+Level = "debug"
+Outputs = ["stderr"]
+
+[ReorgDetectorL1]
+DBPath = "./databases/reorgdetectorl1.sqlite"
+
+[ReorgDetectorL2]
+DBPath = "./databases/reorgdetectorl2.sqlite"
+
+[BridgeL2Sync]
+DBPath = "./databases/bridgel2sync.sqlite"
+BlockFinality = "LatestBlock"
+InitialBlockNum = 0
+BridgeAddr = "0x1348947e282138d8f377b467F7D9c2EB0F335d1f"
+SyncBlockChunkSize = 100
+RetryAfterErrorPeriod = "1s"
+MaxRetryAttemptsAfterError = -1
+WaitForNewBlocksPeriod = "3s"
+OriginNetwork=22
+
+[L1InfoTreeSync]
+DBPath = "./databases/L1InfoTreeSync.sqlite"
+GlobalExitRootAddr="0x2968d6d736178f8fe7393cc33c87f29d9c287e78"
+RollupManagerAddr = "0xe2ef6215adc132df6913c8dd16487abf118d1764"
+SyncBlockChunkSize=1000
+BlockFinality="LatestBlock"
+URLRPCL1="http://localhost:8545"
+WaitForNewBlocksPeriod="100ms"
+InitialBlock=0
+RetryAfterErrorPeriod="1s"
+MaxRetryAttemptsAfterError=-1
+
+[AggSender]
+StoragePath = "./databases/aggsender.sqlite"
+AggLayerURL = "https://agglayer-dev.polygon.technology"
+AggsenderPrivateKey = {Path = "./test.keystore.sequencer", Password = "testonly"}
+URLRPCL2 = "http://localhost:8123"
+BlockFinality = "LatestBlock"
+EpochNotificationPercentage = 50
+SaveCertificatesToFilesPath = ""
+MaxRetriesStoreCertificate = 3
+DelayBeetweenRetries = "60s"
+KeepCertificatesHistory = true
+# MaxSize of the certificate to 8Mb
+MaxCertSize = 8388608
+BridgeMetadataAsHash = true
+DryRun = false
+EnableRPC = true
