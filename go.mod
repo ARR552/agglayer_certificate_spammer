@@ -1,6 +1,6 @@
 module github.com/ARR552/agglayer_certificate_spammer
 
-go 1.23
+go 1.23.5
 
 require (
 	github.com/0xPolygon/cdk v0.5.0-rc1.0.20250117160122-7f89e6c9e89b
