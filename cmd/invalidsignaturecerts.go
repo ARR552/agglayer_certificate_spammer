@@ -6,12 +6,12 @@ import (
 	"runtime"
 
 	"github.com/0xPolygon/cdk"
-	"github.com/0xPolygon/cdk/log"
 	"github.com/0xPolygon/cdk/config"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/0xPolygon/cdk/etherman"
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/0xPolygon/cdk/log"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/urfave/cli/v2"
 )
 
@@ -86,19 +86,19 @@ func sendInvalidSignatureCerts(ctx *cli.Context) error {
 		return err
 	}
 	randomPrivateKey, err := crypto.GenerateKey()
-    if err != nil {
-        log.Error(err)
+	if err != nil {
+		log.Error(err)
 		return err
-    }
-    log.Info("Random Private Key generated:", hexutil.Encode(crypto.FromECDSA(randomPrivateKey)))
+	}
+	log.Info("Random Private Key generated:", hexutil.Encode(crypto.FromECDSA(randomPrivateKey)))
 
-    publicKey := randomPrivateKey.Public()
-    publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-    if !ok {
-        log.Error("cannot assert type: publicKey is not of type *ecdsa.PublicKey")
+	publicKey := randomPrivateKey.Public()
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		log.Error("cannot assert type: publicKey is not of type *ecdsa.PublicKey")
 		return fmt.Errorf("cannot assert type: publicKey is not of type *ecdsa.PublicKey")
-    }
-    log.Info("Generated wallet Address:", crypto.PubkeyToAddress(*publicKeyECDSA).Hex())
+	}
+	log.Info("Generated wallet Address:", crypto.PubkeyToAddress(*publicKeyECDSA).Hex())
 	aggsender, err := createAggSender(
 		ctx.Context,
 		cfg.AggSender,

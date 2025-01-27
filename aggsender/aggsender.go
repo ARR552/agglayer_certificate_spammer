@@ -23,8 +23,8 @@ import (
 	"github.com/0xPolygon/cdk/tree"
 	treeTypes "github.com/0xPolygon/cdk/tree/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/russross/meddler"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/russross/meddler"
 )
 
 const signatureSize = 65
@@ -68,7 +68,7 @@ func New(
 	epochNotifier types.EpochNotifier,
 	sequencerPrivateKey *ecdsa.PrivateKey,
 	bridgeDB string,
-	) (*AggSender, error) {
+) (*AggSender, error) {
 	storageConfig := db.AggSenderSQLStorageConfig{
 		DBPath:                  cfg.StoragePath,
 		KeepCertificatesHistory: cfg.KeepCertificatesHistory,
@@ -407,24 +407,24 @@ func (a *AggSender) buildCertificate(ctx context.Context, certParams *types.Cert
 			return nil, err
 		}
 		prevDepositCount := certParams.MaxDepositCount()
-	
+
 		fakeBridge := bridgesync.Bridge{
-			BlockNum: 0,
-			BlockPos: 0,
-			LeafType: 0,
-			OriginNetwork: a.l2Syncer.OriginNetwork(),
-			OriginAddress: common.Address{},
+			BlockNum:           0,
+			BlockPos:           0,
+			LeafType:           0,
+			OriginNetwork:      a.l2Syncer.OriginNetwork(),
+			OriginAddress:      common.Address{},
 			DestinationNetwork: 0,
 			DestinationAddress: common.HexToAddress("0x2536C2745Ac4A584656A830f7bdCd329c94e8F30"),
-			Amount: big.NewInt(1000000000000000000),
-			Metadata: []byte{},
-			DepositCount: prevDepositCount+1,
+			Amount:             big.NewInt(1000000000000000000),
+			Metadata:           []byte{},
+			DepositCount:       prevDepositCount + 1,
 		}
 
 		err = a.Tree.AddLeaf(tx, fakeBridge.BlockNum, fakeBridge.BlockPos, treeTypes.Leaf{
 			Index: fakeBridge.DepositCount,
 			Hash:  fakeBridge.Hash(),
-		});
+		})
 		if err != nil {
 			log.Warn("error adding the fake leaf. Error: ", err)
 			errRollBack := tx.Rollback()
@@ -921,7 +921,7 @@ func getLastSentBlockAndRetryCount(lastSentCertificateInfo *types.CertificateInf
 	return lastSentBlock, retryCount
 }
 
-func ConnectTree(dbPath string) (*sql.DB, *tree.AppendOnlyTree, error){
+func ConnectTree(dbPath string) (*sql.DB, *tree.AppendOnlyTree, error) {
 	db, err := cdkdb.NewSQLiteDB(dbPath)
 	if err != nil {
 		return nil, nil, err

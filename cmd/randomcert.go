@@ -3,25 +3,24 @@ package main
 import (
 	"crypto/ecdsa"
 	"crypto/rand"
+	"fmt"
 	"math/big"
 	mathrand "math/rand/v2"
-	"fmt"
 	"strings"
 
 	"github.com/0xPolygon/cdk/agglayer"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/0xPolygon/cdk/log"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/urfave/cli/v2"
 )
 
-
-func genRandomCert(emptyCert bool) (*agglayer.Certificate, error) {	
+func genRandomCert(emptyCert bool) (*agglayer.Certificate, error) {
 	var (
-		bridgeExits []*agglayer.BridgeExit
+		bridgeExits         []*agglayer.BridgeExit
 		importedBridgeExits []*agglayer.ImportedBridgeExit
-		err error
+		err                 error
 	)
 	if !emptyCert {
 		log.Info("Generating random bridges and claims...")
@@ -33,15 +32,15 @@ func genRandomCert(emptyCert bool) (*agglayer.Certificate, error) {
 	} else {
 		log.Info("Generating empty certificate...")
 	}
-	
+
 	cert := agglayer.Certificate{
-		NetworkID: mathrand.Uint32(),
-		Height: mathrand.Uint64(),
-		PrevLocalExitRoot: randomHash(),
-		NewLocalExitRoot: randomHash(),
-		BridgeExits: bridgeExits,
+		NetworkID:           mathrand.Uint32(),
+		Height:              mathrand.Uint64(),
+		PrevLocalExitRoot:   randomHash(),
+		NewLocalExitRoot:    randomHash(),
+		BridgeExits:         bridgeExits,
 		ImportedBridgeExits: importedBridgeExits,
-		Metadata: randomHash(),
+		Metadata:            randomHash(),
 	}
 	return &cert, nil
 }
@@ -79,11 +78,11 @@ func randomCerts(ctx *cli.Context) error {
 	var signedCert *agglayer.SignedCertificate
 	if !validSignature {
 		log.Info("Generating random signature...")
-		signedCert = &agglayer.SignedCertificate {
+		signedCert = &agglayer.SignedCertificate{
 			Certificate: cert,
 			Signature: &agglayer.Signature{
-				R: randomHash(),
-				S: randomHash(),
+				R:         randomHash(),
+				S:         randomHash(),
 				OddParity: mathrand.UintN(1) == 0,
 			},
 		}
@@ -171,7 +170,6 @@ func signCertificate(certificate *agglayer.Certificate, privateKey *ecdsa.Privat
 	s := common.BytesToHash(signature[32:64]) // Next 32 bytes are S
 	isOddParity := signature[64]%2 == 1       //nolint:mnd // Last byte is V
 
-
 	return &agglayer.SignedCertificate{
 		Certificate: certificate,
 		Signature: &agglayer.Signature{
@@ -182,47 +180,47 @@ func signCertificate(certificate *agglayer.Certificate, privateKey *ecdsa.Privat
 	}, nil
 }
 
-func generateBridgesAndClaims() ([]*agglayer.BridgeExit, []*agglayer.ImportedBridgeExit, error){
+func generateBridgesAndClaims() ([]*agglayer.BridgeExit, []*agglayer.ImportedBridgeExit, error) {
 	amount, err := rand.Int(rand.Reader, big.NewInt(1000000000000000000))
 	if err != nil {
 		return nil, nil, err
 	}
 	var bridgeExits []*agglayer.BridgeExit
 	maxBridges := mathrand.UintN(8)
-	for i:=0; i< int(maxBridges); i++ {
+	for i := 0; i < int(maxBridges); i++ {
 		bridgeExits = append(bridgeExits, &agglayer.BridgeExit{
 			LeafType: agglayer.LeafType(mathrand.UintN(2)),
-			TokenInfo: &agglayer.TokenInfo {
-				OriginNetwork: mathrand.Uint32(),
+			TokenInfo: &agglayer.TokenInfo{
+				OriginNetwork:      mathrand.Uint32(),
 				OriginTokenAddress: randomAddress(),
 			},
 			DestinationNetwork: mathrand.Uint32(),
 			DestinationAddress: randomAddress(),
-			Amount: amount,
-			IsMetadataHashed: mathrand.UintN(1) == 0,
-			Metadata: randomHash().Bytes(),
+			Amount:             amount,
+			IsMetadataHashed:   mathrand.UintN(1) == 0,
+			Metadata:           randomHash().Bytes(),
 		})
 	}
 	var importedBridgeExits []*agglayer.ImportedBridgeExit
-	for i:=0; i< int(maxBridges); i++ {
+	for i := 0; i < int(maxBridges); i++ {
 		importedBridgeExits = append(importedBridgeExits, &agglayer.ImportedBridgeExit{
 			BridgeExit: &agglayer.BridgeExit{
 				LeafType: agglayer.LeafType(mathrand.UintN(2)),
-				TokenInfo: &agglayer.TokenInfo {
-					OriginNetwork: mathrand.Uint32(),
+				TokenInfo: &agglayer.TokenInfo{
+					OriginNetwork:      mathrand.Uint32(),
 					OriginTokenAddress: randomAddress(),
 				},
 				DestinationNetwork: mathrand.Uint32(),
 				DestinationAddress: randomAddress(),
-				Amount: amount,
-				IsMetadataHashed: mathrand.UintN(1) == 0,
-				Metadata: randomHash().Bytes(),
+				Amount:             amount,
+				IsMetadataHashed:   mathrand.UintN(1) == 0,
+				Metadata:           randomHash().Bytes(),
 			},
 			ClaimData: generateClaimData(),
 			GlobalIndex: &agglayer.GlobalIndex{
 				MainnetFlag: mathrand.UintN(1) == 0,
 				RollupIndex: mathrand.Uint32(),
-				LeafIndex: mathrand.Uint32(),
+				LeafIndex:   mathrand.Uint32(),
 			},
 		})
 	}
@@ -232,21 +230,21 @@ func generateBridgesAndClaims() ([]*agglayer.BridgeExit, []*agglayer.ImportedBri
 func generateMainnetClaim() agglayer.ClaimFromMainnnet {
 	mainnet := agglayer.ClaimFromMainnnet{
 		ProofLeafMER: &agglayer.MerkleProof{
-			Root: randomHash(),
+			Root:  randomHash(),
 			Proof: [32]common.Hash{},
 		},
 		ProofGERToL1Root: &agglayer.MerkleProof{
-			Root: randomHash(),
+			Root:  randomHash(),
 			Proof: [32]common.Hash{},
 		},
 		L1Leaf: &agglayer.L1InfoTreeLeaf{
 			L1InfoTreeIndex: mathrand.Uint32(),
-			RollupExitRoot: randomHash(),
+			RollupExitRoot:  randomHash(),
 			MainnetExitRoot: randomHash(),
-			Inner: &agglayer.L1InfoTreeLeafInner {
+			Inner: &agglayer.L1InfoTreeLeafInner{
 				GlobalExitRoot: randomHash(),
-				BlockHash: randomHash(),
-				Timestamp: mathrand.Uint64(),
+				BlockHash:      randomHash(),
+				Timestamp:      mathrand.Uint64(),
 			},
 		},
 	}
@@ -260,25 +258,25 @@ func generateMainnetClaim() agglayer.ClaimFromMainnnet {
 func generateRollupClaim() agglayer.ClaimFromRollup {
 	rollup := agglayer.ClaimFromRollup{
 		ProofLeafLER: &agglayer.MerkleProof{
-			Root: randomHash(),
+			Root:  randomHash(),
 			Proof: [32]common.Hash{},
 		},
 		ProofLERToRER: &agglayer.MerkleProof{
-			Root: randomHash(),
+			Root:  randomHash(),
 			Proof: [32]common.Hash{},
 		},
 		ProofGERToL1Root: &agglayer.MerkleProof{
-			Root: randomHash(),
+			Root:  randomHash(),
 			Proof: [32]common.Hash{},
 		},
-		L1Leaf: &agglayer.L1InfoTreeLeaf {
-		L1InfoTreeIndex: mathrand.Uint32(),
-		RollupExitRoot: randomHash(),
-		MainnetExitRoot: randomHash(),
-		Inner: &agglayer.L1InfoTreeLeafInner {
+		L1Leaf: &agglayer.L1InfoTreeLeaf{
+			L1InfoTreeIndex: mathrand.Uint32(),
+			RollupExitRoot:  randomHash(),
+			MainnetExitRoot: randomHash(),
+			Inner: &agglayer.L1InfoTreeLeafInner{
 				GlobalExitRoot: randomHash(),
-				BlockHash: randomHash(),
-				Timestamp: mathrand.Uint64(),
+				BlockHash:      randomHash(),
+				Timestamp:      mathrand.Uint64(),
 			},
 		},
 	}

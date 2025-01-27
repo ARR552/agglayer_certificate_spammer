@@ -2,25 +2,25 @@ package main
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"fmt"
 	"os"
 	"os/signal"
-	"crypto/ecdsa"
 	"runtime"
 
-	"github.com/0xPolygon/cdk/bridgesync"
 	"github.com/0xPolygon/cdk"
-	"github.com/0xPolygon/cdk/l1infotreesync"
-	"github.com/0xPolygon/cdk/aggsender"
-	"github.com/0xPolygon/cdk/log"
-	"github.com/0xPolygon/cdk/config"
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/0xPolygon/cdk/common"
 	"github.com/0xPolygon/cdk/agglayer"
-	"github.com/0xPolygon/cdk/reorgdetector"
+	"github.com/0xPolygon/cdk/aggsender"
+	"github.com/0xPolygon/cdk/bridgesync"
+	"github.com/0xPolygon/cdk/common"
+	"github.com/0xPolygon/cdk/config"
 	"github.com/0xPolygon/cdk/etherman"
-	"github.com/urfave/cli/v2"
+	"github.com/0xPolygon/cdk/l1infotreesync"
+	"github.com/0xPolygon/cdk/log"
+	"github.com/0xPolygon/cdk/reorgdetector"
 	spammerAggsender "github.com/ARR552/agglayer_certificate_spammer/aggsender"
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/urfave/cli/v2"
 )
 
 func runBridgeSyncL2(
@@ -135,7 +135,7 @@ func createAggSender(
 	l2Syncer *bridgesync.BridgeSync,
 	bridgeDB string,
 	sequencerPrivateKey *ecdsa.PrivateKey,
-	) (*spammerAggsender.AggSender, error) {
+) (*spammerAggsender.AggSender, error) {
 	logger := log.WithFields("module", "spammer_aggsender")
 	agglayerClient := agglayer.NewAggLayerClient(cfg.AggLayerURL)
 	blockNotifier, err := aggsender.NewBlockNotifierPolling(l1EthClient, aggsender.ConfigBlockNotifierPolling{
@@ -161,7 +161,7 @@ func createAggSender(
 	go blockNotifier.Start(ctx)
 	log.Infof("Starting epochNotifier: %s", epochNotifier.String())
 	go epochNotifier.Start(ctx)
-	
+
 	return spammerAggsender.New(ctx, logger, cfg, agglayerClient, l1InfoTreeSync, l2Syncer, epochNotifier, sequencerPrivateKey, bridgeDB)
 }
 

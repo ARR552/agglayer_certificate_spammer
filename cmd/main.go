@@ -3,19 +3,20 @@ package main
 import (
 	"os"
 
-	"github.com/0xPolygon/cdk/log"
 	"github.com/0xPolygon/cdk/config"
+	"github.com/0xPolygon/cdk/log"
 	"github.com/urfave/cli/v2"
 )
 
 const (
-	urlFlagName = "url"
-	validSignatureFlagName = "valid-signature"
-	privateKeyFlagName = "private-key"
-	emptyCertFlagName = "empty-cert"
-	addFakeBridgeFlagName = "add-fake-bridge"
+	urlFlagName              = "url"
+	validSignatureFlagName   = "valid-signature"
+	privateKeyFlagName       = "private-key"
+	emptyCertFlagName        = "empty-cert"
+	addFakeBridgeFlagName    = "add-fake-bridge"
 	storeCertificateFlagName = "store-certificate"
 )
+
 var (
 	configFileFlag = cli.StringSliceFlag{
 		Name:     config.FlagCfg,
@@ -76,38 +77,38 @@ func main() {
 			Aliases: []string{},
 			Usage:   "Generate and send valid certificates",
 			Action:  sendValidCerts,
-			Flags:   []cli.Flag{
-						&configFileFlag,
-						&disableDefaultConfigVars,
-						&emptyCertificateFlag,
-						&addFakeBridgeFlag,
-						&storeCertificateFlag,
-					},
+			Flags: []cli.Flag{
+				&configFileFlag,
+				&disableDefaultConfigVars,
+				&emptyCertificateFlag,
+				&addFakeBridgeFlag,
+				&storeCertificateFlag,
+			},
 		},
 		{
 			Name:    "invalid-signature-certs",
 			Aliases: []string{},
 			Usage:   "Generate and send certificates with invalid signatures",
 			Action:  sendInvalidSignatureCerts,
-			Flags:   []cli.Flag{
-						&configFileFlag,
-						&disableDefaultConfigVars,
-						&emptyCertificateFlag,
-						&addFakeBridgeFlag,
-						&storeCertificateFlag,
-					},
+			Flags: []cli.Flag{
+				&configFileFlag,
+				&disableDefaultConfigVars,
+				&emptyCertificateFlag,
+				&addFakeBridgeFlag,
+				&storeCertificateFlag,
+			},
 		},
 		{
 			Name:    "random-certs",
 			Aliases: []string{},
 			Usage:   "Generate and send random certificates",
 			Action:  randomCerts,
-			Flags:   []cli.Flag{
-						&urlFlag,
-						&validSignatureFlag,
-						&privateKeyFlag,
-						&emptyCertificateFlag,
-					},
+			Flags: []cli.Flag{
+				&urlFlag,
+				&validSignatureFlag,
+				&privateKeyFlag,
+				&emptyCertificateFlag,
+			},
 		},
 	}
 
