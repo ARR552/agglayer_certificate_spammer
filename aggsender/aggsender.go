@@ -418,7 +418,7 @@ func (a *AggSender) buildCertificate(ctx context.Context, certParams *types.Cert
 			BlockNum:           0,
 			BlockPos:           0,
 			LeafType:           0,
-			OriginNetwork:      a.l2Syncer.OriginNetwork(),
+			OriginNetwork:      0,
 			OriginAddress:      common.Address{},
 			DestinationNetwork: 0,
 			DestinationAddress: common.HexToAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"),
