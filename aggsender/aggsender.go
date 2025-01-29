@@ -146,11 +146,16 @@ func (a *AggSender) sendCertificates(ctx context.Context, emptyCert, addFakeBrid
 	for {
 		select {
 		case <-ticker.C:
-			_, err := a.sendCertificate(ctx, emptyCert, addFakeBridge, storeCertificate)
-			a.status.SetLastError(err)
-			if err != nil {
-				a.log.Error(err)
-			}
+			thereArePendingCerts := a.checkPendingCertificatesStatus(ctx)
+			if !thereArePendingCerts {
+				_, err := a.sendCertificate(ctx, emptyCert, addFakeBridge, storeCertificate)
+				a.status.SetLastError(err)
+				if err != nil {
+					a.log.Error(err)
+				}
+			} else {
+				log.Infof("Skipping because there are pending certificates")
+		}
 		case <-ctx.Done():
 			a.log.Info("AggSender stopped")
 			return
@@ -240,15 +245,15 @@ func (a *AggSender) sendCertificate(ctx context.Context, emptyCert, addFakeBridg
 
 	a.log.Debugf("certificate sent: Height: %d, Hash: %s, cert: %s", signedCertificate.Height, certificateHash.String(), signedCertificate.Brief())
 
-	if !storeCertificate {
-		log.Info("storeCertificate is disabled. Skipping storing the certificate in the database")
-		return signedCertificate, nil
-	}
 	raw, err := json.Marshal(signedCertificate)
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling signed certificate. Cert:%s. Err: %w", signedCertificate.Brief(), err)
 	}
 	log.Debug("certificate sent: ", string(raw))
+	if !storeCertificate {
+		log.Info("storeCertificate is disabled. Skipping storing the certificate in the database")
+		return signedCertificate, nil
+	}
 
 	prevLER := common.BytesToHash(certificate.PrevLocalExitRoot[:])
 	certInfo := types.CertificateInfo{
@@ -402,6 +407,7 @@ func (a *AggSender) buildCertificate(ctx context.Context, certParams *types.Cert
 
 	var exitRoot treeTypes.Root
 	if addFakeBridge {
+		log.Info("Adding a fake bridge to the certificate")
 		tx, err := cdkdb.NewTx(ctx, a.BridgeDatabase)
 		if err != nil {
 			return nil, err
@@ -415,8 +421,8 @@ func (a *AggSender) buildCertificate(ctx context.Context, certParams *types.Cert
 			OriginNetwork:      a.l2Syncer.OriginNetwork(),
 			OriginAddress:      common.Address{},
 			DestinationNetwork: 0,
-			DestinationAddress: common.HexToAddress("0x2536C2745Ac4A584656A830f7bdCd329c94e8F30"),
-			Amount:             big.NewInt(1000000000000000000),
+			DestinationAddress: common.HexToAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"),
+			Amount:             big.NewInt(1000),
 			Metadata:           []byte{},
 			DepositCount:       prevDepositCount + 1,
 		}

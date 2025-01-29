@@ -1,0 +1,64 @@
+[L1Config]
+    chainId = "1337"
+    polygonZkEVMGlobalExitRootAddress = "0x1f7ad7caA53e35b4f0D138dC5CBF91aC108a2674"
+    polygonRollupManagerAddress = "0x2F50ef6b8e8Ee4E579B17619A92dE3E2ffbD8AD2"
+    polTokenAddress = "0xEdE9cf798E0fE25D35469493f43E88FeA4a5da0E"
+    polygonZkEVMAddress = "0xcC626369bD1ff281b22B2dfA71ce0B4776A16568"
+
+[Etherman]
+	URL="http://localhost:33150"
+
+[Common]
+NetworkID = 2
+IsValidiumMode = false
+ContractVersions = "banana"
+
+[Log]
+Environment = "development" # "production" or "development"
+Level = "debug"
+Outputs = ["stderr"]
+
+[ReorgDetectorL1]
+DBPath = "./databases/reorgdetectorl1.sqlite"
+
+[ReorgDetectorL2]
+DBPath = "./databases/reorgdetectorl2.sqlite"
+
+[BridgeL2Sync]
+DBPath = "./databases/bridgel2sync.sqlite"
+BlockFinality = "LatestBlock"
+InitialBlockNum = 0
+BridgeAddr = "0x9A1f8eA578835d2b7b1e1EB8CD5EE3Bb7692338C"
+SyncBlockChunkSize = 100
+RetryAfterErrorPeriod = "1s"
+MaxRetryAttemptsAfterError = -1
+WaitForNewBlocksPeriod = "3s"
+
+[L1InfoTreeSync]
+DBPath = "./databases/L1InfoTreeSync.sqlite"
+GlobalExitRootAddr="0x1f7ad7caA53e35b4f0D138dC5CBF91aC108a2674"
+RollupManagerAddr = "0x2F50ef6b8e8Ee4E579B17619A92dE3E2ffbD8AD2"
+SyncBlockChunkSize=1000
+BlockFinality="LatestBlock"
+URLRPCL1="http://localhost:33150"
+WaitForNewBlocksPeriod="100ms"
+InitialBlock=0
+RetryAfterErrorPeriod="1s"
+MaxRetryAttemptsAfterError=-1
+
+[AggSender]
+StoragePath = "./databases/aggsender.sqlite"
+AggLayerURL = "http://localhost:33162" #https://agglayer-dev.polygon.technology
+AggsenderPrivateKey = {Path = "./test.keystore.sequencer", Password = "testonly"}
+URLRPCL2 = "http://localhost:33179"
+BlockFinality = "LatestBlock"
+EpochNotificationPercentage = 50
+SaveCertificatesToFilesPath = ""
+MaxRetriesStoreCertificate = 3
+DelayBeetweenRetries = "60s"
+KeepCertificatesHistory = true
+# MaxSize of the certificate to 8Mb
+MaxCertSize = 8388608
+BridgeMetadataAsHash = true
+DryRun = false
+EnableRPC = true
