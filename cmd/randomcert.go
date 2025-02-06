@@ -3,12 +3,16 @@ package main
 import (
 	"crypto/ecdsa"
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
 	"math/big"
+	"strconv"
 	mathrand "math/rand/v2"
 	"strings"
+	"time"
 
 	"github.com/0xPolygon/cdk/agglayer"
+	"github.com/0xPolygon/cdk/aggsender/types"
 	"github.com/0xPolygon/cdk/log"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -16,7 +20,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func genRandomCert(emptyCert bool) (*agglayer.Certificate, error) {
+func genRandomCert(emptyCert, randomGlobalIndex bool, networkID uint, height string) (*agglayer.Certificate, error) {
 	var (
 		bridgeExits         []*agglayer.BridgeExit
 		importedBridgeExits []*agglayer.ImportedBridgeExit
@@ -24,7 +28,7 @@ func genRandomCert(emptyCert bool) (*agglayer.Certificate, error) {
 	)
 	if !emptyCert {
 		log.Info("Generating random bridges and claims...")
-		bridgeExits, importedBridgeExits, err = generateBridgesAndClaims()
+		bridgeExits, importedBridgeExits, err = generateBridgesAndClaims(randomGlobalIndex)
 		if err != nil {
 			log.Error("error generating bridges and claims. Error: ", err)
 			return nil, err
@@ -32,15 +36,34 @@ func genRandomCert(emptyCert bool) (*agglayer.Certificate, error) {
 	} else {
 		log.Info("Generating empty certificate...")
 	}
-
+	meta := types.NewCertificateMetadata(
+		mathrand.Uint64(),
+		mathrand.Uint32(),
+		uint32(time.Now().UTC().Unix()),
+	)
+	var net uint32
+	if networkID != 0 {
+		net = uint32(networkID)
+	} else {
+		net = mathrand.Uint32()
+	}
+	var certHeight uint64
+	if height == "" {
+		certHeight = mathrand.Uint64()
+	} else {
+		certHeight, err = strconv.ParseUint(height, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+	}
 	cert := agglayer.Certificate{
-		NetworkID:           mathrand.Uint32(),
-		Height:              mathrand.Uint64(),
+		NetworkID:           net,
+		Height:              certHeight,
 		PrevLocalExitRoot:   randomHash(),
 		NewLocalExitRoot:    randomHash(),
 		BridgeExits:         bridgeExits,
 		ImportedBridgeExits: importedBridgeExits,
-		Metadata:            randomHash(),
+		Metadata:            meta.ToHash(),
 	}
 	return &cert, nil
 }
@@ -70,7 +93,11 @@ func randomCerts(ctx *cli.Context) error {
 	privateKey := ctx.String(privateKeyFlagName)
 	validSignature := ctx.Bool(validSignatureFlagName)
 	emptyCert := ctx.Bool(emptyCertFlagName)
-	cert, err := genRandomCert(emptyCert)
+	networkID := ctx.Uint(networkIDFlagName)
+	height := ctx.String(certHeightFlagName)
+	randomGlobalIndex := ctx.Bool(randomGlobalIndexFlagName)
+
+	cert, err := genRandomCert(emptyCert, randomGlobalIndex, networkID, height)
 	if err != nil {
 		log.Error(err)
 		return err
@@ -83,7 +110,7 @@ func randomCerts(ctx *cli.Context) error {
 			Signature: &agglayer.Signature{
 				R:         randomHash(),
 				S:         randomHash(),
-				OddParity: mathrand.UintN(1) == 0,
+				OddParity: mathrand.UintN(2) == 0,
 			},
 		}
 	} else {
@@ -136,7 +163,37 @@ func randomCerts(ctx *cli.Context) error {
 }
 
 func sendCert(url string, cert *agglayer.SignedCertificate) error {
-	log.Debugf("%+v\n", cert.Certificate)
+	// Validate signature
+	signature := cert.Signature.R.Bytes()
+	signature = append(signature, cert.Signature.S.Bytes()...)
+	if cert.Signature.OddParity {
+		signature = append(signature, 1)
+	} else {
+		signature = append(signature, 0)
+	}
+	sigPublicKey, err := crypto.Ecrecover(cert.Certificate.HashToSign().Bytes(), signature)
+	if err != nil {
+		log.Error("Error: ", err)
+		return err
+	}
+	log.Debug("Signature public key: ", hexutil.Encode(sigPublicKey))
+	pubKey, err := crypto.SigToPub(cert.Certificate.HashToSign().Bytes(), signature)
+	if err != nil {
+		log.Error("Error: ", err)
+		return err
+	}
+	publicKeyBytes := crypto.FromECDSAPub(pubKey)
+
+	log.Debug("Signature Verified: ", crypto.VerifySignature(publicKeyBytes, cert.Certificate.HashToSign().Bytes(), signature[:64]))
+
+	log.Info("Address from signature:", crypto.PubkeyToAddress(*pubKey).Hex())
+	signatureNoRecoverID := signature[:len(signature)-1] // remove recovery id
+	verified := crypto.VerifySignature(publicKeyBytes, cert.Certificate.HashToSign().Bytes(), signatureNoRecoverID)
+	log.Debug("2 Signature Verified: ", verified)
+
+	// Send certificate
+	jsonCert, _ := json.Marshal(cert)
+	log.Debugf("%+v\n", string(jsonCert))
 	hash, err := agglayer.NewAggLayerClient(url).SendCertificate(cert)
 	if err != nil {
 		log.Error(err)
@@ -180,7 +237,7 @@ func signCertificate(certificate *agglayer.Certificate, privateKey *ecdsa.Privat
 	}, nil
 }
 
-func generateBridgesAndClaims() ([]*agglayer.BridgeExit, []*agglayer.ImportedBridgeExit, error) {
+func generateBridgesAndClaims(randomGlobalIndex bool) ([]*agglayer.BridgeExit, []*agglayer.ImportedBridgeExit, error) {
 	amount, err := rand.Int(rand.Reader, big.NewInt(1000000000000000000))
 	if err != nil {
 		return nil, nil, err
@@ -197,12 +254,21 @@ func generateBridgesAndClaims() ([]*agglayer.BridgeExit, []*agglayer.ImportedBri
 			DestinationNetwork: mathrand.Uint32(),
 			DestinationAddress: randomAddress(),
 			Amount:             amount,
-			IsMetadataHashed:   mathrand.UintN(1) == 0,
+			IsMetadataHashed:   true,
 			Metadata:           randomHash().Bytes(),
 		})
 	}
 	var importedBridgeExits []*agglayer.ImportedBridgeExit
 	for i := 0; i < int(maxBridges); i++ {
+		mainnetFlag := mathrand.UintN(2) == 0
+		var rollupIndex uint32
+		if randomGlobalIndex {
+			rollupIndex = mathrand.Uint32()
+		} else {
+			if !mainnetFlag {
+				rollupIndex = mathrand.Uint32()
+			}
+		}
 		importedBridgeExits = append(importedBridgeExits, &agglayer.ImportedBridgeExit{
 			BridgeExit: &agglayer.BridgeExit{
 				LeafType: agglayer.LeafType(mathrand.UintN(2)),
@@ -213,13 +279,13 @@ func generateBridgesAndClaims() ([]*agglayer.BridgeExit, []*agglayer.ImportedBri
 				DestinationNetwork: mathrand.Uint32(),
 				DestinationAddress: randomAddress(),
 				Amount:             amount,
-				IsMetadataHashed:   mathrand.UintN(1) == 0,
+				IsMetadataHashed:   true,
 				Metadata:           randomHash().Bytes(),
 			},
 			ClaimData: generateClaimData(),
 			GlobalIndex: &agglayer.GlobalIndex{
-				MainnetFlag: mathrand.UintN(1) == 0,
-				RollupIndex: mathrand.Uint32(),
+				MainnetFlag: mainnetFlag,
+				RollupIndex: rollupIndex,
 				LeafIndex:   mathrand.Uint32(),
 			},
 		})
@@ -290,7 +356,7 @@ func generateRollupClaim() agglayer.ClaimFromRollup {
 
 func generateClaimData() agglayer.Claim {
 	var claimData agglayer.Claim
-	if mathrand.UintN(1) == 0 {
+	if mathrand.UintN(2) == 0 {
 		rollup := generateRollupClaim()
 		claimData = &rollup
 	} else {

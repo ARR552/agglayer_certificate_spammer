@@ -9,12 +9,15 @@ import (
 )
 
 const (
-	urlFlagName              = "url"
-	validSignatureFlagName   = "valid-signature"
-	privateKeyFlagName       = "private-key"
-	emptyCertFlagName        = "empty-cert"
-	addFakeBridgeFlagName    = "add-fake-bridge"
-	storeCertificateFlagName = "store-certificate"
+	urlFlagName               = "url"
+	validSignatureFlagName    = "valid-signature"
+	privateKeyFlagName        = "private-key"
+	emptyCertFlagName         = "empty-cert"
+	addFakeBridgeFlagName     = "add-fake-bridge"
+	storeCertificateFlagName  = "store-certificate"
+	networkIDFlagName         = "network-id"
+	certHeightFlagName        = "height"
+	randomGlobalIndexFlagName = "random-global-index"
 )
 
 var (
@@ -66,6 +69,23 @@ var (
 		Usage:    "Defines if the certificate must be stored in the database",
 		Required: false,
 	}
+	networkIDFlag = cli.UintFlag{
+		Name:     networkIDFlagName,
+		Aliases:  []string{"net"},
+		Usage:    "Defines the network ID of the certificate",
+		Required: false,
+	}
+	certHeightFlag = cli.StringFlag{
+		Name:     certHeightFlagName,
+		Usage:    "Sets the height of the certificate",
+		Required: false,
+	}
+	randomGlobalIndexFlag = cli.BoolFlag{
+		Name:     randomGlobalIndexFlagName,
+		Aliases:  []string{"random-gi"},
+		Usage:    "Force the GlobalIndex to be fully random. MainnetFlag (true) and rollupIndex (!= 0) at the same time",
+		Required: false,
+	}
 )
 
 func main() {
@@ -108,6 +128,9 @@ func main() {
 				&validSignatureFlag,
 				&privateKeyFlag,
 				&emptyCertificateFlag,
+				&networkIDFlag,
+				&certHeightFlag,
+				&randomGlobalIndexFlag,
 			},
 		},
 	}
