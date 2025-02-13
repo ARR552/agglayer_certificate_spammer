@@ -16,6 +16,7 @@ const (
 	addFakeBridgeFlagName     = "add-fake-bridge"
 	storeCertificateFlagName  = "store-certificate"
 	networkIDFlagName         = "network-id"
+	singleCertFlagName        = "single-cert"
 	certHeightFlagName        = "height"
 	randomGlobalIndexFlagName = "random-global-index"
 )
@@ -25,7 +26,7 @@ var (
 		Name:     config.FlagCfg,
 		Aliases:  []string{"c"},
 		Usage:    "Configuration file(s)",
-		Required: true,
+		Required: false,
 	}
 	disableDefaultConfigVars = cli.BoolFlag{
 		Name:     config.FlagDisableDefaultConfigVars,
@@ -75,6 +76,12 @@ var (
 		Usage:    "Defines the network ID of the certificate",
 		Required: false,
 	}
+	singleCertFlag = cli.BoolFlag{
+		Name:     singleCertFlagName,
+		Aliases:  []string{"sigle"},
+		Usage:    "Force to send only one certificate",
+		Required: false,
+	}
 	certHeightFlag = cli.StringFlag{
 		Name:     certHeightFlagName,
 		Usage:    "Sets the height of the certificate",
@@ -103,6 +110,7 @@ func main() {
 				&emptyCertificateFlag,
 				&addFakeBridgeFlag,
 				&storeCertificateFlag,
+				&singleCertFlag,
 			},
 		},
 		{
@@ -116,6 +124,7 @@ func main() {
 				&emptyCertificateFlag,
 				&addFakeBridgeFlag,
 				&storeCertificateFlag,
+				&singleCertFlag,
 			},
 		},
 		{

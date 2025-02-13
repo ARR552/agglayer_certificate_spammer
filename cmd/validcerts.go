@@ -173,6 +173,7 @@ func sendValidCerts(ctx *cli.Context) error {
 	emptyCert := ctx.Bool(emptyCertFlagName)
 	addFakeBridge := ctx.Bool(addFakeBridgeFlagName)
 	storeCertificate := ctx.Bool(storeCertificateFlagName)
+	singleCert := ctx.Bool(singleCertFlagName)
 
 	log.Init(cfg.Log)
 
@@ -253,7 +254,7 @@ func sendValidCerts(ctx *cli.Context) error {
 		log.Error(err)
 		return err
 	}
-	go aggsender.Start(ctx.Context, emptyCert, addFakeBridge, storeCertificate)
+	go aggsender.Start(ctx.Context, emptyCert, addFakeBridge, storeCertificate, singleCert)
 	waitSignal(nil)
 
 	return nil

@@ -110,11 +110,11 @@ func (a *AggSender) Info() types.AggsenderInfo {
 }
 
 // Start starts the AggSender
-func (a *AggSender) Start(ctx context.Context, emptyCert, addFakeBridge, storeCertificate bool) {
+func (a *AggSender) Start(ctx context.Context, emptyCert, addFakeBridge, storeCertificate, singleCert bool) {
 	a.log.Info("AggSender started")
 	a.status.Start(time.Now().UTC())
 	a.checkInitialStatus(ctx)
-	a.sendCertificates(ctx, emptyCert, addFakeBridge, storeCertificate)
+	a.sendCertificates(ctx, emptyCert, addFakeBridge, storeCertificate, singleCert)
 }
 
 // checkInitialStatus check local status vs agglayer status
@@ -140,7 +140,7 @@ func (a *AggSender) checkInitialStatus(ctx context.Context) {
 }
 
 // sendCertificates sends certificates to the aggLayer
-func (a *AggSender) sendCertificates(ctx context.Context, emptyCert, addFakeBridge, storeCertificate bool) {
+func (a *AggSender) sendCertificates(ctx context.Context, emptyCert, addFakeBridge, storeCertificate, singleCert bool) {
 	ticker := time.NewTicker(time.Second)
 	a.status.Status = types.StatusCertificateStage
 	for {
@@ -148,7 +148,7 @@ func (a *AggSender) sendCertificates(ctx context.Context, emptyCert, addFakeBrid
 		case <-ticker.C:
 			thereArePendingCerts := a.checkPendingCertificatesStatus(ctx)
 			if !thereArePendingCerts {
-				_, err := a.sendCertificate(ctx, emptyCert, addFakeBridge, storeCertificate)
+				_, err := a.sendCertificate(ctx, emptyCert, addFakeBridge, storeCertificate, singleCert)
 				a.status.SetLastError(err)
 				if err != nil {
 					a.log.Error(err)
@@ -164,7 +164,7 @@ func (a *AggSender) sendCertificates(ctx context.Context, emptyCert, addFakeBrid
 }
 
 // sendCertificate sends certificate for a network
-func (a *AggSender) sendCertificate(ctx context.Context, emptyCert, addFakeBridge, storeCertificate bool) (*agglayer.SignedCertificate, error) {
+func (a *AggSender) sendCertificate(ctx context.Context, emptyCert, addFakeBridge, storeCertificate, singleCert bool) (*agglayer.SignedCertificate, error) {
 	a.log.Infof("trying to send a new certificate...")
 
 	lastL2BlockSynced, err := a.l2Syncer.GetLastProcessedBlock(ctx)
@@ -277,6 +277,10 @@ func (a *AggSender) sendCertificate(ctx context.Context, emptyCert, addFakeBridg
 
 	a.log.Infof("certificate: %s sent successfully for range of l2 blocks (from block: %d, to block: %d) cert:%s", certInfo.ID(), fromBlock, toBlock, signedCertificate.Brief())
 
+	if singleCert {
+		log.Info("Single certificate mode enabled, exiting")
+		os.Exit(0)
+	}
 	return signedCertificate, nil
 }
 
